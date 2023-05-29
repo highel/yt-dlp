@@ -354,17 +354,22 @@ class PanoptoIE(PanoptoBaseIE):
 
             if http_stream_url:
                 stream_formats.append({'url': http_stream_url})
-
-            if stream_url:
-                media_type = stream.get('ViewerMediaFileTypeName')
-                if media_type in ('hls', ):
-                    m3u8_formats, stream_subtitles = self._extract_m3u8_formats_and_subtitles(stream_url, video_id)
-                    stream_formats.extend(m3u8_formats)
-                    subtitles = self._merge_subtitles(subtitles, stream_subtitles)
+           
+            if stream_url :
+                host_is_external = "." in stream_url.split('/')[2].strip()
+                if (host_is_external):
+                    media_type = stream.get('ViewerMediaFileTypeName')
+                    if media_type in ('hls', ):
+                        m3u8_formats, stream_subtitles = self._extract_m3u8_formats_and_subtitles(stream_url, video_id)
+                        stream_formats.extend(m3u8_formats)
+                        subtitles = self._merge_subtitles(subtitles, stream_subtitles)
+                    else:
+                        stream_formats.append({
+                            'url': stream_url
+                        })
                 else:
-                    stream_formats.append({
-                        'url': stream_url
-                    })
+                    print(f'WARNING: Suspicious stream URL {stream_url}, ignoring.')
+
             for fmt in stream_formats:
                 fmt.update({
                     'format_note': stream.get('Tag'),
